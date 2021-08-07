@@ -1,0 +1,8 @@
+# 🥯
+
+a golfing language split down the middle
+
+## The idea that led to this entire thing:
+"Hmm, instead of using a character to mark the end of, say, a string, why not specify the length of the string at the start? Oh wait the length specifier will also be 1 byte so nothing will change...
+
+Wait, then what if I specify the length of the string *in* the byte marking the start... I could use half a byte for it, strings over 16 bytes can have a different system"
