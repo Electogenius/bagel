@@ -1,0 +1,21 @@
+{
+  "name": "bagel",
+  "version": "1.0.0",
+  "description": "a golfing language split down the middle",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Electogenius/bagel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Electogenius/bagel/issues"
+  },
+  "homepage": "https://github.com/Electogenius/bagel#readme",
+  "dependencies": {}
+}

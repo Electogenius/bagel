@@ -2,6 +2,8 @@
 
 a golfing language split down the middle
 
+I feel like "claustrophobia" would be a better name, not sure why I named it bagel
+
 ## The idea that led to this entire thing:
 "Hmm, instead of using a character to mark the end of, say, a string, why not specify the length of the string at the start? Oh wait the length specifier will also be 1 byte so nothing will change...
 
