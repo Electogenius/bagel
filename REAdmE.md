@@ -1,6 +1,6 @@
 # 🥯
 
-a bad but simple-ish golfing language split down the middle
+a bad but simple-ish golfing language with an unusual approach 
 
 not exactly sure why I named it bagel
 

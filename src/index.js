@@ -1,9 +1,24 @@
 var b = {
-	run(c, args) {
-		b.args = args;
-		b.tape = args||[0]
-		let printed = false;
+	run(c, args, nr = false) {
+		let printed = true;
+		if (!nr) {
+			b.args = args;
+			b.tape = args || [0];
+			printed = false;
+		} else {
+			c = c
+				.split('')
+				.map(
+					e =>
+						e.charCodeAt() > 7
+							? e.charCodeAt().toString(16)
+							: 0 + e.charCodeAt().toString(16)
+				)
+				.join('');
+			console.log(c);
+		}
 		c = c.toLowerCase().split``;
+
 		for (let n = 0; n < c.length; n += 2) {
 			b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
 			function cset(val, ind) {
@@ -11,15 +26,16 @@ var b = {
 				ind = ind || b.ptr;
 				b.tape[ind] = val;
 			}
-			function p(){
-				let e=b.p
-				b.p=[]
-				return e
+			function p() {
+				let e = b.p;
+				b.p = [];
+				return e;
 			}
-			let skip = e => (n += e);
-			let cm = (e = 0) => c[n + e],
-				H = parseInt(cm(1), 16),
-				cr=b.tape[b.ptr];
+			let toSkip = 0;
+			let skip = e => (toSkip += e);
+			let cm = e => c[n + (e || 0)];
+			let H = parseInt(cm(1), 16),
+				cr = b.tape[b.ptr];
 			//string of if's, descending order
 			if (cm() == 'f') {
 				//declare array/load arg based on 5th bit
@@ -28,9 +44,14 @@ var b = {
 					b.tape[b.ptr] = b.args[cm(1) - 8];
 				} else {
 					//array
-					let arr = b.array(c, n + 2, c.slice(n + 2, n + 2 + (H + 1) * 2),skip);
+					let arr = b.array(
+						c,
+						n + 2,
+						c.slice(n + 2, n + 2 + (H + 1) * 2),
+						skip
+					);
 					cset(arr);
-					skip(1 + (H + 1))
+					skip(H + 1 - 1);
 				}
 			}
 			if (cm() == 'e') {
@@ -57,47 +78,71 @@ var b = {
 				skip(res.length * 2);
 				cset(res);
 			}
-			if(cm()=="c"){
-				//numbers 0x1 to 0x10
-				cset(H+1)
+			if (cm() == 'c') {
+				//inline numbers, 1 to 16
+				cset(H + 1);
 			}
 			//todo logic
-			if(cm()==3){
-				//array operations
-				if(H==0)cset(b.tape[b.ptr].map(e=>String.fromCharCode(e)))
-			}
-			if(cm()==2){
-				//string operations
-				if(H==0)cset(cr.split``)//to array
-				if(H==1)cset(cr.slice(...p()))//slice
-				if(H==2)cset(cr.charCodeAt(p()[0]))//gets charCode
-				if(H==3){
-					//split by nth character
-					let a=[],h=p()[0];
-					cr.split("").forEach((e,n)=>{
-						if(n%h==0)a.push("")
-						a[a.length-1]+=e
-					})
-					cset(a)
+			if (cm() == 4) {
+				//extension of block 0
+				if (H == 0) {
+					console.log(cr);
+					printed = true;
 				}
-				if(H==4)cset(parseInt(cr,2))//binary
-				if(H==5)cset(parseInt(cr,16))//hex
-				if(H==6)cset(parseInt(cr,8))//octal
 			}
-			if(cm()==1){
+			if (cm() == 3) {
+				//array operations, some work on strings
+				if (H == 0) cset(cr.map(e => String.fromCharCode(e)).join``); //toString
+				if (H == 1) cset(cr[0]); //first item
+				if (H == 2) cset(cr[cr.length - 1]); //last item
+				if (H == 3) {
+					cr.forEach((e, n) => {
+						let pr = b.ptr;
+						b.ptr++;
+						cset(e);
+						b.ptr++;
+						cset(n);
+						b.ptr++;
+						b.run(b.p[0], null, true);
+						b.ptr = pr;
+					});
+				} //forEach
+			}
+			if (cm() == 2) {
+				//string operations
+				if (H == 0) cset(cr.split``); //to array
+				if (H == 1) cset(cr.slice(...p())); //slice
+				if (H == 2) cset(cr.charCodeAt(p()[0])); //gets charCode
+				if (H == 3) {
+					//split by nth character
+					let a = [],
+						h = p()[0];
+					cr.split('').forEach((e, n) => {
+						if (n % h == 0) a.push('');
+						a[a.length - 1] += e;
+					});
+					cset(a);
+				}
+				if (H == 4) cset(parseInt(cr, 2)); //binary
+				if (H == 5) cset(parseInt(cr, 16)); //hex
+				if (H == 6) cset(parseInt(cr, 8)); //octal
+				if (H == 7) cset(cr.toUpperCase());
+				if (H == 8) cset(cr.toLowerCase());
+			}
+			if (cm() == 1) {
 				//number operations
-				if(H==0)cset(-(b.tape[b.ptr]))
-				if(H==1)cset(b.tape[b.ptr]+"")//toString
-				if(H==2)cset(Math.abs(b.tape[b.ptr]))
-				if(H==3)cset(Math.floor(b.tape[b.ptr]))
-				if(H==4)cset(Math.ceil(b.tape[b.ptr]))
-				if(H==5)cset(Math.sin(b.tape[b.ptr]))
-				if(H==6)cset(Math.cos(b.tape[b.ptr]))
-				if(H==7)cset(Math.sqrt(b.tape[b.ptr]))
-				if(H==8)cset(Math.random()*b.tape[b.ptr])//random number from 0 to cell
-				if(H==9)cset(cr.toString(2))//binary
-				if(H==10)cset(cr.toString(16))//hex
-				if(H==11)cset(cr.toString(8))//octal
+				if (H == 0) cset(-b.tape[b.ptr]);
+				if (H == 1) cset(b.tape[b.ptr] + ''); //toString
+				if (H == 2) cset(Math.abs(b.tape[b.ptr]));
+				if (H == 3) cset(Math.floor(b.tape[b.ptr]));
+				if (H == 4) cset(Math.ceil(b.tape[b.ptr]));
+				if (H == 5) cset(Math.sin(b.tape[b.ptr]));
+				if (H == 6) cset(Math.cos(b.tape[b.ptr]));
+				if (H == 7) cset(Math.sqrt(b.tape[b.ptr]));
+				if (H == 8) cset(Math.random() * b.tape[b.ptr]); //random number from 0 to cell
+				if (H == 9) cset(cr.toString(2)); //binary
+				if (H == 10) cset(cr.toString(16)); //hex
+				if (H == 11) cset(cr.toString(8)); //octal
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
@@ -108,65 +153,66 @@ var b = {
 				if (H == 4) cset(b.ptr); //pointer value
 				if (H == 5) b.tape[b.ptr]++; //increment
 				if (H == 6) b.tape[b.ptr]--; //decrement
-				if (H == 7) c[n] = String(b.tape[b.ptr]);//sets a part of the code to the cell value (?)
-				if(H==8){
+				if (H == 7) c[n] = String(b.tape[b.ptr]); //sets a part of the code to the cell value (?)
+				if (H == 8) {
 					//add
-					b.ptr--
-					cset(b.tape[b.ptr]+b.tape[b.ptr+1])
-					b.ptr++
-					cset(0)
-					b.ptr--
+					b.ptr--;
+					cset(b.tape[b.ptr] + b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
 				}
-				if(H==9){
+				if (H == 9) {
 					//subtract
-					b.ptr--
-					cset(b.tape[b.ptr]-b.tape[b.ptr+1])
-					b.ptr++
-					cset(0)
-					b.ptr--
+					b.ptr--;
+					cset(b.tape[b.ptr] - b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
 				}
-				if(H==0xa){
+				if (H == 0xa) {
 					//multiply
-					b.ptr--
-					cset(b.tape[b.ptr]*b.tape[b.ptr+1])
-					b.ptr++
-					cset(0)
-					b.ptr--
+					b.ptr--;
+					cset(b.tape[b.ptr] * b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
 				}
-				if(H==0xb){
+				if (H == 0xb) {
 					//divide
-					b.ptr--
-					cset(b.tape[b.ptr]/b.tape[b.ptr+1])
-					b.ptr++
-					cset(0)
-					b.ptr--
+					b.ptr--;
+					cset(b.tape[b.ptr] / b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
 				}
-				if(H==0xc){
+				if (H == 0xc) {
 					//power
-					b.ptr--
-					cset(b.tape[b.ptr]**b.tape[b.ptr+1])
-					b.ptr++
-					cset(0)
-					b.ptr--
+					b.ptr--;
+					cset(b.tape[b.ptr] ** b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
 				}
-				if(H==0xd){
+				if (H == 0xd) {
 					//modulo
-					b.ptr--
-					cset(b.tape[b.ptr]+b.tape[b.ptr+1])
-					b.ptr++
-					cset(0)
-					b.ptr--
+					b.ptr--;
+					cset(b.tape[b.ptr] + b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
 				}
-				if(H==0xe){
+				if (H == 0xe) {
 					//duplicate
-					b.ptr++
-					cset(b.tape[b.ptr-1])
+					b.ptr++;
+					cset(b.tape[b.ptr - 1]);
 				}
-				if(H==0xf){
+				if (H == 0xf) {
 					//add to args
-					b.p.push(cr)
+					b.p.push(cr);
 				}
 			}
+			n += toSkip;
 		}
 		b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
 		if (!printed) {
@@ -176,14 +222,14 @@ var b = {
 	args: [],
 	tape: [0],
 	ptr: 0,
-	array(c, n, arr,skip) {
+	array(c, n, arr, skip) {
 		let p = 0,
 			res = [];
 		n += arr.length;
 		arr.forEach(e => {
 			let pr = p;
 			p += parseInt(e, 16) * 2;
-			skip(p)
+			skip(p);
 			res.push(c.slice(n + pr, n + p));
 		});
 		return res.map(e => parseInt(e.join``, 16));
@@ -199,6 +245,6 @@ var b = {
 		return res.map(e => parseInt(e.join``, 16));
 	},
 	s: s => s.split``.map(e => e.charCodeAt().toString(16)).join``,
-	p:[]
+	p: []
 };
 module.exports = b;
