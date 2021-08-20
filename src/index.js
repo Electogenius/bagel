@@ -130,6 +130,7 @@ var b = {
 						b.ptr--;
 					}
 				}
+				if(H==15)return b.p.pop()
 			}
 			if (cm() == 3) {
 				//array operations, some work on strings
@@ -148,7 +149,19 @@ var b = {
 						b.ptr = pr;
 					});
 				} //forEach
-				if (H == 4) cset(cr.reduce((a, b) => a + b)); //sum
+				if (H == 4) {
+					cr.forEach((e, n) => {
+						let pr = b.ptr;
+						b.ptr++;
+						cset(n);
+						b.ptr++;
+						cset(e);
+						b.ptr-=2;
+						b.tape[b.ptr][n]=b.run(b.p[0], [0], true);
+						b.ptr = pr;
+					});
+				} //map
+				if (H == 5) cset(cr.reduce((a, b) => a + b)); //sum
 			}
 			if (cm() == 2) {
 				//string operations
@@ -186,7 +199,8 @@ var b = {
 				if (H == 9) cset(cr.toString(2)); //binary
 				if (H == 10) cset(cr.toString(16)); //hex
 				if (H == 11) cset(cr.toString(8)); //octal
-				//
+				if(H==12)cset(-cr)
+				if(H==13)cset((cr+"").split``.map(e=>~~e))//array of digits
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
