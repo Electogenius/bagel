@@ -11,3 +11,5 @@ Wait, then what if I specify the length of the string *in* the byte marking the 
 
 
 Also golfing languages usually use stacks but they make me feel uncomfortable so I used a tape (with some stack-lang-like features)
+
+More info [in the wiki](https://github.com/Electogenius/bagel/wiki)

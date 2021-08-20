@@ -15,7 +15,6 @@ var b = {
 							: 0 + e.charCodeAt().toString(16)
 				)
 				.join('');
-			console.log(c);
 		}
 		c = c.toLowerCase().split``;
 
@@ -82,12 +81,54 @@ var b = {
 				//inline numbers, 1 to 16
 				cset(H + 1);
 			}
-			//todo logic
+			if (cm() == 5) {
+				//logic
+				if (H == 0) {
+					if (cr) {
+						b.run(b.p.pop(), [0], true);
+					} else {
+						b.ptr++;
+						cset(1);
+					}
+				} //if
+			}
 			if (cm() == 4) {
 				//extension of block 0
 				if (H == 0) {
+					//print
 					console.log(cr);
 					printed = true;
+				}
+				if (H == 1) {
+					//print without newline
+					process.stdout.write(cr);
+					printed = true;
+				}
+				if (H == 2) b.run('01' + cr + '02', [0], true);
+				if (H == 3) n = cr - 2; //test, move pointer
+				if (H == 4) {
+					//adaptive max
+					if (typeof cr == 'object') {
+						cset(Math.max(...cr));
+					} else {
+						b.ptr--;
+						cset(Math.max(b.tape[b.ptr], b.tape[b.ptr + 1]));
+						b.ptr++;
+						cset(0);
+						b.ptr--;
+					}
+				}
+				if (H == 5) {
+					//adaptive min
+					if (typeof cr == 'object') {
+						cset(Math.min(...cr));
+					} else {
+						b.ptr--;
+						cset(Math.min(b.tape[b.ptr], b.tape[b.ptr + 1]));
+						b.ptr++;
+						cset(0);
+						b.ptr--;
+					}
 				}
 			}
 			if (cm() == 3) {
@@ -99,14 +140,15 @@ var b = {
 					cr.forEach((e, n) => {
 						let pr = b.ptr;
 						b.ptr++;
-						cset(e);
-						b.ptr++;
 						cset(n);
 						b.ptr++;
-						b.run(b.p[0], null, true);
+						cset(e);
+						b.ptr++;
+						b.run(b.p[0], [0], true);
 						b.ptr = pr;
 					});
 				} //forEach
+				if (H == 4) cset(cr.reduce((a, b) => a + b)); //sum
 			}
 			if (cm() == 2) {
 				//string operations
@@ -128,6 +170,7 @@ var b = {
 				if (H == 6) cset(parseInt(cr, 8)); //octal
 				if (H == 7) cset(cr.toUpperCase());
 				if (H == 8) cset(cr.toLowerCase());
+				if (H == 9) cset();
 			}
 			if (cm() == 1) {
 				//number operations
@@ -143,6 +186,7 @@ var b = {
 				if (H == 9) cset(cr.toString(2)); //binary
 				if (H == 10) cset(cr.toString(16)); //hex
 				if (H == 11) cset(cr.toString(8)); //octal
+				//
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
@@ -197,7 +241,7 @@ var b = {
 				if (H == 0xd) {
 					//modulo
 					b.ptr--;
-					cset(b.tape[b.ptr] + b.tape[b.ptr + 1]);
+					cset(b.tape[b.ptr] % b.tape[b.ptr + 1]);
 					b.ptr++;
 					cset(0);
 					b.ptr--;
