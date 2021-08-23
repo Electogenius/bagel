@@ -200,6 +200,10 @@ var b = {
 				if (H == 11) cset(cr.toString(8)); //octal
 				if(H==12)cset(-cr)
 				if(H==13)cset((cr+"").split``.map(e=>~~e))//array of digits
+				if(H==14){
+					let e=number => [...Array(number + 1).keys()].filter(i=>number % i === 0);//GET STACKOVERFLOW'D
+					cset(e(cr))
+				}//list factors
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
