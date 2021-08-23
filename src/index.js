@@ -17,7 +17,6 @@ var b = {
 				.join('');
 		}
 		c = c.toLowerCase().split``;
-
 		for (let n = 0; n < c.length; n += 2) {
 			b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
 			function cset(val, ind) {
@@ -130,7 +129,7 @@ var b = {
 						b.ptr--;
 					}
 				}
-				if(H==15)return b.p.pop()
+				if(H==15)return b.p[b.p.length-1]
 			}
 			if (cm() == 3) {
 				//array operations, some work on strings
@@ -157,7 +156,7 @@ var b = {
 						b.ptr++;
 						cset(e);
 						b.ptr-=2;
-						b.tape[b.ptr][n]=b.run(b.p[0], [0], true);
+						b.tape[b.ptr][n]=b.run(b.p[b.p.length-1]	, [0], true);
 						b.ptr = pr;
 					});
 				} //map
@@ -273,7 +272,7 @@ var b = {
 			n += toSkip;
 		}
 		b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
-		if (!printed) {
+		if (!printed&&!nr) {
 			console.log(b.tape[b.ptr]);
 		}
 	},
