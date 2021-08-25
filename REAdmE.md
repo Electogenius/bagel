@@ -14,4 +14,4 @@ Also golfing languages usually use stacks but they make me feel uncomfortable so
 
 More info [in the wiki](https://github.com/Electogenius/bagel/wiki)
 
-Bagel is extremely bad at golfing (it's my first one of course), so I've decided that bagel's goal is to be worse than other golfing languages but better than worse than most practical languages. This empty space is usually occupied by esolangs that are surprisingly good at a task.
+Bagel is extremely bad at golfing (it's my first one of course), so I've decided that bagel's goal is to be worse than other golfing languages but better than most practical languages. This empty space is usually occupied by esolangs that are surprisingly good at a task.
