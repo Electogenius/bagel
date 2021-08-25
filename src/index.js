@@ -1,6 +1,5 @@
 var b = {
 	run(c, args, nr = false) {
-		let printed = true;
 		if (!nr) {
 			b.args = args;
 			b.tape = args || [0];
@@ -96,12 +95,12 @@ var b = {
 				if (H == 0) {
 					//print
 					console.log(cr);
-					printed = true;
+					b.printed = true;
 				}
 				if (H == 1) {
 					//print without newline
 					process.stdout.write(cr);
-					printed = true;
+					b.printed = true;
 				}
 				if (H == 2) b.run('01' + cr + '02', [0], true);
 				if (H == 3) n = cr - 2; //test, move pointer
@@ -129,7 +128,9 @@ var b = {
 						b.ptr--;
 					}
 				}
-				if(H==15)return b.p[b.p.length-1]
+				if(H==6)cset(Array.from(Array(cr).keys()))//range from 0
+				if(H==7)cset(c.join``)//source code, hex
+				if(H==15)return b.p[b.p.length-1]//return
 			}
 			if (cm() == 3) {
 				//array operations, some work on strings
@@ -144,7 +145,7 @@ var b = {
 						b.ptr++;
 						cset(e);
 						b.ptr++;
-						b.run(b.p[0], [0], true);
+						b.run(b.p[b.p.length-1], [0], true);
 						b.ptr = pr;
 					});
 				} //forEach
@@ -161,6 +162,7 @@ var b = {
 					});
 				} //map
 				if (H == 5) cset(cr.reduce((a, b) => a + b)); //sum
+				if(H==6)cset(cr.length)//get length
 			}
 			if (cm() == 2) {
 				//string operations
@@ -204,6 +206,7 @@ var b = {
 					let e=number => [...Array(number + 1).keys()].filter(i=>number % i === 0);//GET STACKOVERFLOW'D
 					cset(e(cr))
 				}//list factors
+				if(H==15)cset(cr/2)
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
@@ -276,8 +279,9 @@ var b = {
 			n += toSkip;
 		}
 		b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
-		if (!printed&&!nr) {
+		if (!b.printed&&!nr) {
 			console.log(b.tape[b.ptr]);
+			b.printed=false
 		}
 	},
 	args: [],
@@ -306,6 +310,7 @@ var b = {
 		return res.map(e => parseInt(e.join``, 16));
 	},
 	s: s => s.split``.map(e => e.charCodeAt().toString(16)).join``,
-	p: []
+	p: [],
+	printed:false
 };
 module.exports = b;

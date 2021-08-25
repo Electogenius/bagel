@@ -13,3 +13,5 @@ Wait, then what if I specify the length of the string *in* the byte marking the 
 Also golfing languages usually use stacks but they make me feel uncomfortable so I used a tape (with some stack-lang-like features)
 
 More info [in the wiki](https://github.com/Electogenius/bagel/wiki)
+
+Bagel is extremely bad at golfing (it's my first one of course), so I've decided that bagel's goal is to be worse than other golfing languages but better than worse than most practical languages. This empty space is usually occupied by esolangs that are surprisingly good at a task.
