@@ -1,7 +1,6 @@
 var b = {
 	run(c, args, nr = false) {
 		if (!nr) {
-			b.args = args;
 			b.tape = args || [0];
 			printed = false;
 		} else {
@@ -81,6 +80,7 @@ var b = {
 			}
 			if (cm() == 5) {
 				//logic
+				let ns=e=>cset(Number(e))
 				if (H == 0) {
 					if (cr) {
 						b.run(b.p.pop(), [0], true);
@@ -89,6 +89,57 @@ var b = {
 						cset(1);
 					}
 				} //if
+				if (H == 9) {
+					//lesser
+					b.ptr--;
+					ns(b.tape[b.ptr] < b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
+				if (H == 10) {
+					//greater
+					b.ptr--;
+					ns(b.tape[b.ptr] > b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
+				if(H==11){
+					ns(!cr)
+				}
+				if (H == 12) {
+					//and
+					b.ptr--;
+					ns(b.tape[b.ptr] && b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
+				if (H == 13) {
+					//or
+					b.ptr--;
+					ns(b.tape[b.ptr] || b.tape[b.ptr + 1]+0);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
+				if (H == 14) {
+					//strict equals
+					b.ptr--;
+					ns(b.tape[b.ptr] === b.tape[b.ptr + 1]+0);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
+				if (H == 15) {
+					//equals
+					b.ptr--;
+					ns(b.tape[b.ptr] == b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
 			}
 			if (cm() == 4) {
 				//extension of block 0
@@ -130,6 +181,14 @@ var b = {
 				}
 				if(H==6)cset(Array.from(Array(cr).keys()))//range from 0
 				if(H==7)cset(c.join``)//source code, hex
+				if(H==8)b.ptr=b.tape.length-1//go to last cell
+				if(H==9)b.ptr=0//go to cell 0
+				if(H==10){
+					//swap tape and arguments
+					let e=b.tape
+					b.tape=b.p
+					b.p=e
+				}
 				if(H==15)return b.p[b.p.length-1]//return
 			}
 			if (cm() == 3) {
@@ -284,7 +343,6 @@ var b = {
 			b.printed=false
 		}
 	},
-	args: [],
 	tape: [0],
 	ptr: 0,
 	array(c, n, arr, skip) {
