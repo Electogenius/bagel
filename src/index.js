@@ -14,6 +14,7 @@ var b = {
 				)
 				.join('');
 		}
+		let previousBlock
 		c = c.toLowerCase().split``;
 		for (let n = 0; n < c.length; n += 2) {
 			b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
@@ -28,27 +29,13 @@ var b = {
 				return e;
 			}
 			let toSkip = 0;
-			let skip = e => (toSkip += e);
-			let cm = e => c[n + (e || 0)];
+			let skip = e => (toSkip += e), cm = e => c[n + (e || 0)];
 			let H = parseInt(cm(1), 16),
 				cr = b.tape[b.ptr];
 			//string of if's, descending order
 			if (cm() == 'f') {
-				//declare array/load arg based on 5th bit
-				if (H >= 8) {
-					//argument (might remove and replace with more efficient system)
-					b.tape[b.ptr] = b.args[cm(1) - 8];
-				} else {
-					//array
-					let arr = b.array(
-						c,
-						n + 2,
-						c.slice(n + 2, n + 2 + (H + 1) * 2),
-						skip
-					);
-					cset(arr);
-					skip(H + 1 - 1);
-				}
+				//todo some kind of array system
+				
 			}
 			if (cm() == 'e') {
 				//number short
@@ -72,7 +59,11 @@ var b = {
 					res += String.fromCharCode(parseInt(e[h] + e[h + 1], 16));
 				}
 				skip(res.length * 2);
-				cset(res);
+				if(previousBlock != 'd'){
+				    cset(res);
+				}else{
+				    cset(b.tape[b.ptr]+res)
+				}
 			}
 			if (cm() == 'c') {
 				//inline numbers, 1 to 16
@@ -80,7 +71,7 @@ var b = {
 			}
 			if (cm() == 5) {
 				//logic
-				let ns=e=>cset(Number(e))
+				let ns = e => cset(Number(e));
 				if (H == 0) {
 					if (cr) {
 						b.run(b.p.pop(), [0], true);
@@ -89,6 +80,14 @@ var b = {
 						cset(1);
 					}
 				} //if
+				if(H==8){
+					//`in`
+					b.ptr--;
+					ns(b.tape[b.ptr] in b.tape[b.ptr + 1]);
+					b.ptr++;
+					cset(0);
+					b.ptr--;
+				}
 				if (H == 9) {
 					//lesser
 					b.ptr--;
@@ -105,8 +104,9 @@ var b = {
 					cset(0);
 					b.ptr--;
 				}
-				if(H==11){
-					ns(!cr)
+				if (H == 11) {
+					//not
+					ns(!cr);
 				}
 				if (H == 12) {
 					//and
@@ -119,7 +119,7 @@ var b = {
 				if (H == 13) {
 					//or
 					b.ptr--;
-					ns(b.tape[b.ptr] || b.tape[b.ptr + 1]+0);
+					ns(b.tape[b.ptr] || b.tape[b.ptr + 1] + 0);
 					b.ptr++;
 					cset(0);
 					b.ptr--;
@@ -127,7 +127,7 @@ var b = {
 				if (H == 14) {
 					//strict equals
 					b.ptr--;
-					ns(b.tape[b.ptr] === b.tape[b.ptr + 1]+0);
+					ns(b.tape[b.ptr] === b.tape[b.ptr + 1] + 0);
 					b.ptr++;
 					cset(0);
 					b.ptr--;
@@ -150,7 +150,7 @@ var b = {
 				}
 				if (H == 1) {
 					//print without newline
-					process.stdout.write(cr);
+					process.stdout.write(String(cr));
 					b.printed = true;
 				}
 				if (H == 2) b.run('01' + cr + '02', [0], true);
@@ -179,17 +179,30 @@ var b = {
 						b.ptr--;
 					}
 				}
-				if(H==6)cset(Array.from(Array(cr).keys()))//range from 0
-				if(H==7)cset(c.join``)//source code, hex
-				if(H==8)b.ptr=b.tape.length-1//go to last cell
-				if(H==9)b.ptr=0//go to cell 0
-				if(H==10){
+				if (H == 6) cset(Array.from(Array(cr).keys())); //range from 0
+				if (H == 7) cset(c.join``); //source code, hex
+				if (H == 8) b.ptr = b.tape.length - 1; //go to last cell
+				if (H == 9) b.ptr = 0; //go to cell 0
+				if (H == 10) {
 					//swap tape and arguments
-					let e=b.tape
-					b.tape=b.p
-					b.p=e
+					let e = b.tape;
+					b.tape = b.p;
+					b.p = e;
 				}
-				if(H==15)return b.p[b.p.length-1]//return
+				if(H==11){
+					let base=b.p.pop()
+					cset(cr.toString(base))
+				}//to base
+				if(H==12){
+					let base=b.p.pop()
+					cset(parseInt(cr,base))
+				}//from base
+				if(H==13){
+					let nm = parseInt(c.slice(n + 2, n+4).join(''), 16);
+					skip(2)
+					cset(b.consts[nm])
+				}
+				if (H == 15) return b.p[b.p.length - 1]; //return
 			}
 			if (cm() == 3) {
 				//array operations, some work on strings
@@ -204,24 +217,27 @@ var b = {
 						b.ptr++;
 						cset(e);
 						b.ptr++;
-						b.run(b.p[b.p.length-1], [0], true);
+						b.run(b.p[b.p.length - 1], [0], true);
 						b.ptr = pr;
 					});
 				} //forEach
 				if (H == 4) {
+					let code = b.p.pop();
 					cr.forEach((e, n) => {
-						let pr = b.ptr;
 						b.ptr++;
 						cset(n);
 						b.ptr++;
 						cset(e);
-						b.ptr-=2;
-						b.tape[b.ptr][n]=b.run(b.p[b.p.length-1]	, [0], true);
-						b.ptr = pr;
+						let rl = b.ptr;
+						b.run(code, b.tape, true);
+						//console.log(b.tape)
+						let res = b.tape[rl];
+						b.ptr -= 2;
+						cr[n] = res;
 					});
 				} //map
 				if (H == 5) cset(cr.reduce((a, b) => a + b)); //sum
-				if(H==6)cset(cr.length)//get length
+				if (H == 6) cset(cr.length); //get length
 			}
 			if (cm() == 2) {
 				//string operations
@@ -259,13 +275,14 @@ var b = {
 				if (H == 9) cset(cr.toString(2)); //binary
 				if (H == 10) cset(cr.toString(16)); //hex
 				if (H == 11) cset(cr.toString(8)); //octal
-				if(H==12)cset(-cr)
-				if(H==13)cset((cr+"").split``.map(e=>~~e))//array of digits
-				if(H==14){
-					let e=number => [...Array(number + 1).keys()].filter(i=>number % i === 0);//GET STACKOVERFLOW'D
-					cset(e(cr))
-				}//list factors
-				if(H==15)cset(cr/2)
+				if (H == 12) cset(-cr);
+				if (H == 13) cset((cr + '').split``.map(e => ~~e)); //array of digits
+				if (H == 14) {
+					let e = number =>
+						[...Array(number + 1).keys()].filter(i => number % i === 0); //GET STACKOVERFLOW'D
+					cset(e(cr));
+				} //list factors
+				if (H == 15) cset(cr / 2); //halve
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
@@ -296,10 +313,15 @@ var b = {
 				if (H == 0xa) {
 					//multiply
 					b.ptr--;
-					cset(b.tape[b.ptr] * b.tape[b.ptr + 1]);
-					b.ptr++;
-					cset(0);
-					b.ptr--;
+					if (typeof b.tape[b.ptr]=="number") {
+						cset(b.tape[b.ptr] * b.tape[b.ptr + 1]);
+						b.ptr++;
+						cset(0);
+						b.ptr--;
+					} else if(typeof b.tape[b.ptr]=="string") {
+						//string repeating
+						cset(b.tape[b.ptr].repeat(cr))
+					}
 				}
 				if (H == 0xb) {
 					//divide
@@ -335,12 +357,13 @@ var b = {
 					b.p.push(cr);
 				}
 			}
+			previousBlock = cm()
 			n += toSkip;
 		}
-		b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
-		if (!b.printed&&!nr) {
+		b.tape[b.ptr] = (b.tape[b.ptr] === undefined) ? 0 : (b.tape[b.ptr])
+		if (!b.printed && !nr) {
 			console.log(b.tape[b.ptr]);
-			b.printed=false
+			b.printed = false;
 		}
 	},
 	tape: [0],
@@ -369,6 +392,7 @@ var b = {
 	},
 	s: s => s.split``.map(e => e.charCodeAt().toString(16)).join``,
 	p: [],
-	printed:false
+	printed: false,
+	consts:[256,512,1024,2048,4096,"",[],-1,undefined,null,NaN,Math.PI,Math.E,(1 + Math.sqrt(5)) / 2]
 };
 module.exports = b;
