@@ -14,7 +14,7 @@ var b = {
 				)
 				.join('');
 		}
-		let previousBlock
+		let previousBlock, inStringOrNot = false, currentString = ""
 		c = c.toLowerCase().split``;
 		for (let n = 0; n < c.length; n += 2) {
 			b.tape[b.ptr] = b.tape[b.ptr] === undefined ? 0 : b.tape[b.ptr];
@@ -32,7 +32,20 @@ var b = {
 			let skip = e => (toSkip += e), cm = e => c[n + (e || 0)];
 			let H = parseInt(cm(1), 16),
 				cr = b.tape[b.ptr];
-			//string of if's, descending order
+
+			if(inStringOrNot){
+				if(cm() == '0' && H == '0') {
+					inStringOrNot = false
+					cset(currentString)
+				} else {
+					currentString += String.fromCharCode(+("0x"+cm())*16+H);
+				}
+				continue
+			}
+			
+			// Here begins string of if's, descending order
+			// Each if statement is a 'block'
+
 			if (cm() == 'f') {
 				//todo some kind of array system
 				
@@ -179,7 +192,7 @@ var b = {
 						b.ptr--;
 					}
 				}
-				if (H == 6) cset(Array.from(Array(cr).keys())); //range from 0
+				if (H == 6) cset(Array.from(Array(+cr).keys())); //range from 0
 				if (H == 7) cset(c.join``); //source code, hex
 				if (H == 8) b.ptr = b.tape.length - 1; //go to last cell
 				if (H == 9) b.ptr = 0; //go to cell 0
@@ -286,7 +299,12 @@ var b = {
 			}
 			if (cm() == 0) {
 				//basic tape/code commands
-				//null bytes are ignored for now
+				//null bytes are used to start and end strings
+				if (H == 0){
+					inStringOrNot = true
+				}
+
+
 				if (H == 1) b.ptr++; //move right
 				if (H == 2) b.ptr--; //move left
 				if (H == 3) cset(0); //reset
